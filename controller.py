@@ -1,5 +1,6 @@
-from tinydb import TinyDB, Query
+from tinydb import TinyDB
 from view import View
+import model
 from model import Contact
 
 db = TinyDB('database.json')
@@ -8,131 +9,98 @@ contacts_table = db.table('contacts')
 
 class Controller:
     def __init__(self):
-        pass
+        self.view = View()
+        self.db = db
 
     def create_contact(self):
-        v = View()
-        surname = View.input_surname(v)
-        first_name = View.input_first_name(v)
-        number = View.input_number(v)
+        surname = self.view.input_surname()
+        first_name = self.view.input_first_name()
+        number = self.view.input_number()
         contact = Contact(surname, first_name, number)
         print(contact.surname, contact.first_name, contact.number)
         return contact
 
     def main_loop(self):
-        main_menu = dict()
-        main_menu['1'] = 'Créer un contact'
-        main_menu['2'] = 'Supprimer un contact'
-        main_menu['3'] = 'Rechercher un contact'
-        main_menu['4'] = 'Quitter le programme'
-
         while True:
-            options = main_menu.keys()
-            print('\n***********************************************\nMENU PRINCIPAL:')
-            for entry in options:
-                print(entry, main_menu[entry])
-
-            main_selection = input('***********************************************\nChoisissez une option: ')
+            main_selection = self.view.display_main_menu()
 
             if main_selection == '1':
-                import model
                 contacts_table.insert(model.deserialize_contact(self.create_contact()))
+                self.main_loop()
 
-            if main_selection == '2':
+            elif main_selection == '2':
                 self.delete_loop()
 
-            if main_selection == '3':
+            elif main_selection == '3':
                 self.search_loop()
 
-            if main_selection == '4':
+            elif main_selection == '4':
                 break
 
             else:
-                print('Veuillez choisir une option entre 1 et 3')
+                self.view.display_main_menu_options()
+                self.main_loop()
 
     def delete_loop(self):
+        loop = True
+        while loop:
+            delete_selection = self.view.display_delete_menu()
 
-        delete_menu = dict()
-        delete_menu['1'] = 'Rechercher par nom'
-        delete_menu['2'] = 'Rechercher par prenom'
-        delete_menu['3'] = 'Menu principal'
-
-        while True:
-            options = delete_menu.keys()
-            print('\n***********************************************\nMENU SUPPRESSION:')
-            for entry in options:
-                print(entry, delete_menu[entry])
-            search_selection = input('***********************************************\nChoisissez une option: ')
-
-            if search_selection == '1':
-                # appel à la vue ne fonctionne pas
-                v = View()
-                surname = View.input_surname(v)
-                s = Query()
-                print(contacts_table.search(s.nom == surname))
+            if delete_selection == '1':
+                search = self.view.display_search_by_surname()
 
                 confirm = input('Confirmer la suppression? (Y/N): ')
                 cond = True
                 while cond:
                     if confirm == 'Y':
-                        contacts_table.remove(s.nom == surname)
+                        contacts_table.remove(search)
                         cond = False
                     elif confirm == 'N':
                         cond = False
                     else:
-                        pass
+                        confirm = input('Confirmer la suppression? (Y/N): ')
 
-            if search_selection == '2':
-                v = View()
-                first_name = View.input_first_name(v)
-                s = Query()
-                print(contacts_table.search(s.prenom == first_name))
+            elif delete_selection == '2':
+                search = self.view.display_search_by_first_name()
 
                 confirm = input('Confirmer la suppression? (Y/N): ')
                 cond = True
                 while cond:
                     if confirm == 'Y':
-                        contacts_table.remove(s.prenom == first_name)
+                        contacts_table.remove(search)
                         cond = False
                     elif confirm == 'N':
                         cond = False
                     else:
-                        pass
+                        confirm = input('Confirmer la suppression? (Y/N): ')
 
-            if search_selection == '3':
+            elif delete_selection == '3':
+                break
+
+            else:
+                self.view.display_delete_menu_options()
                 break
 
     def search_loop(self):
-        search_menu = dict()
-        search_menu['1'] = 'Rechercher par nom'
-        search_menu['2'] = 'Rechercher par prenom'
-        search_menu['3'] = 'Annuaire inverse'
-        search_menu['4'] = 'Menu principal'
 
         while True:
-            options = search_menu.keys()
-            print('\n***********************************************\nMENU RECHERCHE:')
-            for entry in options:
-                print(entry, search_menu[entry])
-            search_selection = input('***********************************************\nChoisissez une option: ')
+            search_selection = self.view.display_search_menu()
 
             if search_selection == '1':
-                v = View()
-                surname = View.input_surname(v)
-                s = Query()
-                print(contacts_table.search(s.nom == surname))
+                self.view.display_search_by_surname()
+                self.search_loop()
 
-            if search_selection == '2':
-                v = View()
-                first_name = View.input_first_name(v)
-                s = Query()
-                print(contacts_table.search(s.prenom == first_name))
+            elif search_selection == '2':
+                self.view.display_search_by_first_name()
+                self.search_loop()
 
-            if search_selection == '3':
-                v = View()
-                number = View.input_number(v)
-                s = Query()
-                print(contacts_table.search(s.numero == number))
+            elif search_selection == '3':
+                self.view.display_search_by_number()
+                self.search_loop()
 
-            if search_selection == '4':
+            elif search_selection == '4':
                 break
+
+            else:
+                self.view.display_search_menu_options()
+                self.search_loop()
