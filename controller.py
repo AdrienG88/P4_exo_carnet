@@ -3,14 +3,13 @@ from view import View
 import model
 from model import Contact
 
-db = TinyDB('database.json')
-contacts_table = db.table('contacts')
+# contacts_table = db.table('contacts')
 
 
 class Controller:
     def __init__(self):
         self.view = View()
-        self.db = db
+        self.db = TinyDB('database.json')
 
     def create_contact(self):
         surname = self.view.input_surname()
@@ -25,7 +24,7 @@ class Controller:
             main_selection = self.view.display_main_menu()
 
             if main_selection == '1':
-                contacts_table.insert(model.deserialize_contact(self.create_contact()))
+                self.db.table('contacts').insert(model.deserialize_contact(self.create_contact()))
                 self.main_loop()
 
             elif main_selection == '2':
@@ -53,7 +52,7 @@ class Controller:
                 cond = True
                 while cond:
                     if confirm == 'Y':
-                        contacts_table.remove(search)
+                        self.db.table('contacts').remove(search)
                         cond = False
                     elif confirm == 'N':
                         cond = False
@@ -67,7 +66,7 @@ class Controller:
                 cond = True
                 while cond:
                     if confirm == 'Y':
-                        contacts_table.remove(search)
+                        self.db.table('contacts').remove(search)
                         cond = False
                     elif confirm == 'N':
                         cond = False
